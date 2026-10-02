@@ -46,7 +46,7 @@ function daysClass(int $d): string {
     <?php endforeach; ?>
   </select>
   <input type="search" name="q" class="form-control" style="width:auto;min-width:220px"
-         placeholder="All Customers" autocomplete="off"
+         placeholder="Customer or machine name" autocomplete="off"
          value="<?= htmlspecialchars($filters['q'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
          data-live-filter="licenseResults">
   <input type="hidden" name="sort" value="<?= htmlspecialchars($sort, ENT_QUOTES, 'UTF-8') ?>">
