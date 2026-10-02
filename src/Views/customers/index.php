@@ -17,14 +17,18 @@ $sortIcon = function(string $col) use ($sort, $dir): string {
 
 <!-- Search bar -->
 <form method="GET" action="<?= BASE_URL ?>/customers" class="fab-search-bar mb-3">
-  <input type="text" name="search" class="form-control" placeholder="Search by name, ID or contact…"
+  <input type="search" name="search" class="form-control" placeholder="Search by name, ID or contact…"
+         autocomplete="off" data-live-filter="customerResults"
          value="<?= htmlspecialchars($search ?? '', ENT_QUOTES, 'UTF-8') ?>">
+  <input type="hidden" name="sort" value="<?= htmlspecialchars($sort, ENT_QUOTES, 'UTF-8') ?>">
+  <input type="hidden" name="dir" value="<?= htmlspecialchars($dir, ENT_QUOTES, 'UTF-8') ?>">
   <button type="submit" class="btn btn-outline-secondary">Search</button>
   <?php if ($search): ?>
   <a href="<?= BASE_URL ?>/customers" class="btn btn-outline-secondary">Clear</a>
   <?php endif; ?>
 </form>
 
+<div id="customerResults">
 <div class="fab-table-wrap">
   <?php if (empty($customers)): ?>
   <div class="px-4 py-4 text-muted-fab text-center">No customers found.</div>
@@ -78,3 +82,4 @@ $sortIcon = function(string $col) use ($sort, $dir): string {
 $paginationParams = array_filter(['search' => $search, 'sort' => $sort, 'dir' => $dir]);
 require __DIR__ . '/../partials/pagination.php';
 ?>
+</div>

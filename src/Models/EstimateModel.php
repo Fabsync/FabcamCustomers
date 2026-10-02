@@ -15,6 +15,11 @@ class EstimateModel extends BaseModel {
             $where[]  = 'e.customer_id = ?';
             $params[] = (int) $filters['customer_id'];
         }
+        if (!empty($filters['q'])) {
+            $like     = '%' . addcslashes($filters['q'], '%_\\') . '%';
+            $where[]  = '(c.company_name LIKE ? OR c.customer_id LIKE ? OR e.estimate_number LIKE ?)';
+            array_push($params, $like, $like, $like);
+        }
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 

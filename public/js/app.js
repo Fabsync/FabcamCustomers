@@ -1,30 +1,32 @@
 document.addEventListener('DOMContentLoaded', function () {
 
-  // 1. CSRF auto-injection
+  // 1. CSRF auto-injection + 2. Confirm dialogs (re-run on content swapped in later)
   const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-  if (csrfMeta) {
-    const token = csrfMeta.getAttribute('content');
-    document.querySelectorAll('form[method="POST"], form[method="post"]').forEach(function (form) {
-      if (!form.querySelector('input[name="_csrf"]')) {
-        const input = document.createElement('input');
-        input.type  = 'hidden';
-        input.name  = '_csrf';
-        input.value = token;
-        form.appendChild(input);
-      }
+  function enhance(root) {
+    if (csrfMeta) {
+      const token = csrfMeta.getAttribute('content');
+      root.querySelectorAll('form[method="POST"], form[method="post"]').forEach(function (form) {
+        if (!form.querySelector('input[name="_csrf"]')) {
+          const input = document.createElement('input');
+          input.type  = 'hidden';
+          input.name  = '_csrf';
+          input.value = token;
+          form.appendChild(input);
+        }
+      });
+    }
+
+    root.querySelectorAll('[data-confirm]').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        const msg = el.getAttribute('data-confirm') || 'Are you sure?';
+        if (!window.confirm(msg)) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
     });
   }
-
-  // 2. Confirm dialogs
-  document.querySelectorAll('[data-confirm]').forEach(function (el) {
-    el.addEventListener('click', function (e) {
-      const msg = el.getAttribute('data-confirm') || 'Are you sure?';
-      if (!window.confirm(msg)) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    });
-  });
+  enhance(document);
 
   // 3. Client-side table search
   const searchInput = document.querySelector('[data-search-table]');
@@ -147,7 +149,38 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // 5. Mobile sidebar toggle
+  // 5. Live filter: re-query the server as the user types and swap in the results
+  document.querySelectorAll('input[data-live-filter]').forEach(function (input) {
+    var form   = input.closest('form');
+    var target = document.getElementById(input.getAttribute('data-live-filter'));
+    if (!form || !target) return;
+
+    var timer, controller;
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var params = new URLSearchParams();
+        new FormData(form).forEach(function (v, k) { if (v !== '') params.append(k, v); });
+        var url = form.getAttribute('action') + (params.toString() ? '?' + params : '');
+
+        if (controller) controller.abort();
+        controller = new AbortController();
+        fetch(url, { signal: controller.signal, credentials: 'same-origin' })
+          .then(function (res) { return res.text(); })
+          .then(function (html) {
+            var doc   = new DOMParser().parseFromString(html, 'text/html');
+            var fresh = doc.getElementById(target.id);
+            if (!fresh) return;
+            target.innerHTML = fresh.innerHTML;
+            enhance(target);
+            history.replaceState(null, '', url);
+          })
+          .catch(function (err) { if (err.name !== 'AbortError') console.error(err); });
+      }, 300);
+    });
+  });
+
+  // 6. Mobile sidebar toggle
   const sidebarToggle  = document.getElementById('sidebarToggle');
   const fabSidebar     = document.getElementById('fabSidebar');
   const sidebarOverlay = document.getElementById('sidebarOverlay');

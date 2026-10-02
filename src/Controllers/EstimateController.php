@@ -7,14 +7,13 @@ class EstimateController extends Controller {
         $filters = [
             'status'      => $_GET['status']      ?? '',
             'customer_id' => (int)($_GET['customer_id'] ?? 0) ?: '',
+            'q'           => trim($_GET['q'] ?? ''),
         ];
         $model     = new EstimateModel();
         $estimates = $model->getAll($filters);
-        $customers = (new CustomerModel())->getAll();
         $this->render('estimates/index', [
             'pageTitle' => 'Estimates',
             'estimates' => $estimates,
-            'customers' => $customers,
             'filters'   => $filters,
         ]);
     }

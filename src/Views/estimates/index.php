@@ -11,18 +11,15 @@
     <option value="<?= $v ?>" <?= ($filters['status'] ?? '') === $v ? 'selected' : '' ?>><?= $l ?></option>
     <?php endforeach; ?>
   </select>
-  <select name="customer_id" class="form-select" style="width:auto" data-searchable>
-    <option value="">All Customers</option>
-    <?php foreach ($customers as $c): ?>
-    <option value="<?= (int)$c['id'] ?>" <?= (int)($filters['customer_id'] ?? 0) === (int)$c['id'] ? 'selected' : '' ?>>
-      <?= htmlspecialchars($c['company_name'], ENT_QUOTES, 'UTF-8') ?>
-    </option>
-    <?php endforeach; ?>
-  </select>
+  <input type="search" name="q" class="form-control" style="width:auto;min-width:220px"
+         placeholder="All Customers" autocomplete="off"
+         value="<?= htmlspecialchars($filters['q'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+         data-live-filter="estimateResults">
   <button type="submit" class="btn btn-accent"><i class="bi bi-funnel me-1"></i>Filter</button>
   <a href="<?= BASE_URL ?>/estimates" class="btn btn-filter-clear"><i class="bi bi-x-lg me-1"></i>Clear</a>
 </form>
 
+<div id="estimateResults">
 <div class="fab-table-wrap">
   <?php if (empty($estimates)): ?>
   <div class="px-4 py-4 text-muted-fab text-center">No estimates found.</div>
@@ -80,4 +77,5 @@
     </table>
   </div>
   <?php endif; ?>
+</div>
 </div>

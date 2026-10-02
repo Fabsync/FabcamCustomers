@@ -45,18 +45,17 @@ function daysClass(int $d): string {
     </option>
     <?php endforeach; ?>
   </select>
-  <select name="customer_id" class="form-select" style="width:auto" data-searchable>
-    <option value="">All Customers</option>
-    <?php foreach ($customers as $c): ?>
-    <option value="<?= (int)$c['id'] ?>" <?= (int)($filters['customer_id'] ?? 0) === (int)$c['id'] ? 'selected' : '' ?>>
-      <?= htmlspecialchars($c['company_name'], ENT_QUOTES, 'UTF-8') ?>
-    </option>
-    <?php endforeach; ?>
-  </select>
+  <input type="search" name="q" class="form-control" style="width:auto;min-width:220px"
+         placeholder="All Customers" autocomplete="off"
+         value="<?= htmlspecialchars($filters['q'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+         data-live-filter="licenseResults">
+  <input type="hidden" name="sort" value="<?= htmlspecialchars($sort, ENT_QUOTES, 'UTF-8') ?>">
+  <input type="hidden" name="dir" value="<?= htmlspecialchars($dir, ENT_QUOTES, 'UTF-8') ?>">
   <button type="submit" class="btn btn-accent"><i class="bi bi-funnel me-1"></i>Filter</button>
   <a href="<?= BASE_URL ?>/licenses" class="btn btn-filter-clear"><i class="bi bi-x-lg me-1"></i>Clear</a>
 </form>
 
+<div id="licenseResults">
 <div class="fab-table-wrap">
   <?php if (empty($licenses)): ?>
   <div class="px-4 py-4 text-muted-fab text-center">No licenses found.</div>
@@ -124,3 +123,4 @@ function daysClass(int $d): string {
 $paginationParams = array_filter(array_merge($filters, ['sort' => $sort, 'dir' => $dir]), fn($v) => $v !== '' && $v !== 0);
 require __DIR__ . '/../partials/pagination.php';
 ?>
+</div>

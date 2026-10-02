@@ -81,6 +81,12 @@ class LicenseModel extends BaseModel {
             $where[]  = 'l.customer_id = ?';
             $params[] = (int) $filters['customer_id'];
         }
+        if (!empty($filters['q'])) {
+            $like     = '%' . addcslashes($filters['q'], '%_\\') . '%';
+            $where[]  = '(c.company_name LIKE ? OR c.customer_id LIKE ?)';
+            $params[] = $like;
+            $params[] = $like;
+        }
         $allowed_amc = ['active', 'expired', 'not_applicable'];
         if (!empty($filters['amc_status']) && in_array($filters['amc_status'], $allowed_amc)) {
             $where[]  = 'l.amc_status = ?';
