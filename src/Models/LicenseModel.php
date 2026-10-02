@@ -2,6 +2,26 @@
 
 class LicenseModel extends BaseModel {
 
+    private static bool $amcSynced = false;
+
+    public function __construct() {
+        parent::__construct();
+        if (!self::$amcSynced) {
+            $this->expireOverdueAmc();
+            self::$amcSynced = true;
+        }
+    }
+
+    // Active AMCs whose expiry date has been reached (days left <= 0) become expired
+    public function expireOverdueAmc(): int {
+        return $this->pdo->exec(
+            "UPDATE licenses SET amc_status = 'expired'
+             WHERE amc_status = 'active'
+               AND expiry_date IS NOT NULL
+               AND expiry_date <= CURDATE()"
+        );
+    }
+
     public function getAll(array $filters = [], int $limit = 0, int $offset = 0, string $sort = 'expiry_date', string $dir = 'asc'): array {
         [$whereSql, $params] = $this->buildWhere($filters);
 

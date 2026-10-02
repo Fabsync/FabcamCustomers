@@ -27,6 +27,7 @@ class ExportController extends Controller {
             'customer_id' => $_GET['customer_id'] ?? '',
         ];
 
+        (new LicenseModel())->expireOverdueAmc();
         $rows = (new ExportModel())->getLicenseExportData($filters);
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
