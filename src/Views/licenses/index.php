@@ -88,7 +88,12 @@ function daysClass(int $d): string {
           </td>
           <td><?= htmlspecialchars($lic['product_name'], ENT_QUOTES, 'UTF-8') ?></td>
           <td class="text-capitalize"><?= htmlspecialchars($lic['license_type'], ENT_QUOTES, 'UTF-8') ?></td>
-          <td><code><?= htmlspecialchars($lic['server_code'] ?? '—', ENT_QUOTES, 'UTF-8') ?></code></td>
+          <td class="text-nowrap">
+            <?php $code = (string)($lic['server_code'] ?? ''); ?>
+            <?php if ($code === ''): ?>—<?php else: ?>
+            <code title="<?= htmlspecialchars($code, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(mb_substr($code, 0, 4), ENT_QUOTES, 'UTF-8') ?><?= mb_strlen($code) > 4 ? '…' : '' ?></code>
+            <?php endif; ?>
+          </td>
           <td><?= htmlspecialchars($lic['machine_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
           <td><?= htmlspecialchars($lic['expiry_date'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
           <td>
