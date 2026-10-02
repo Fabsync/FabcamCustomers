@@ -12,7 +12,7 @@ class LicenseController extends Controller {
             'q'           => trim($_GET['q'] ?? ''),
         ];
         $page       = max(1, (int)($_GET['page'] ?? 1));
-        $sort       = $_GET['sort'] ?? 'expiry_date';
+        $sort       = $_GET['sort'] ?? 'default';
         $dir        = $_GET['dir']  ?? 'asc';
         $perPage    = 20;
         $offset     = ($page - 1) * $perPage;

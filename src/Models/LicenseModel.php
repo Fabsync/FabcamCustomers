@@ -22,8 +22,16 @@ class LicenseModel extends BaseModel {
         );
     }
 
-    public function getAll(array $filters = [], int $limit = 0, int $offset = 0, string $sort = 'expiry_date', string $dir = 'asc'): array {
+    public function getAll(array $filters = [], int $limit = 0, int $offset = 0, string $sort = 'default', string $dir = 'asc'): array {
         [$whereSql, $params] = $this->buildWhere($filters);
+
+        // Default order: upcoming expiries (1, 2, 3 … days left), then expired (0, -1, -2 …),
+        // then licenses with no expiry date, with revoked licenses always last
+        $days       = 'DATEDIFF(l.expiry_date, CURDATE())';
+        $defaultSql = "l.license_status = 'revoked',
+                       CASE WHEN l.expiry_date IS NULL THEN 2 WHEN {$days} > 0 THEN 0 ELSE 1 END,
+                       CASE WHEN {$days} > 0 THEN {$days} END ASC,
+                       {$days} DESC";
 
         $allowed  = [
             'company_name'   => 'c.company_name',
@@ -34,8 +42,8 @@ class LicenseModel extends BaseModel {
             'license_status' => 'l.license_status',
             'amc_status'     => 'l.amc_status',
         ];
-        $orderCol    = $allowed[$sort] ?? 'l.expiry_date';
         $orderDir    = strtolower($dir) === 'desc' ? 'DESC' : 'ASC';
+        $orderSql    = isset($allowed[$sort]) ? "{$allowed[$sort]} {$orderDir}" : $defaultSql;
         $paginateSql = $limit > 0 ? " LIMIT {$limit} OFFSET {$offset}" : '';
 
         $sql = "SELECT l.*, DATEDIFF(l.expiry_date, CURDATE()) AS days_left,
@@ -46,7 +54,7 @@ class LicenseModel extends BaseModel {
                 JOIN products  p ON p.id = l.product_id
                 LEFT JOIN users u ON u.id = l.updated_by
                 {$whereSql}
-                ORDER BY {$orderCol} {$orderDir}{$paginateSql}";
+                ORDER BY {$orderSql}, l.id{$paginateSql}";
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
