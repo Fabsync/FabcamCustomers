@@ -7,11 +7,15 @@ function daysClass(int $days): string {
 }
 $activeCount   = (int)($stats['active_licenses']  ?? 0);
 $expiredCount  = (int)($stats['expired_licenses'] ?? 0);
-$graceCount    = (int)($stats['grace_licenses']   ?? 0);
-$revokedCount  = (int)($stats['revoked_licenses'] ?? 0);
-$amcActive     = (int)($stats['amc_active']       ?? 0);
-$amcExpired    = (int)($stats['amc_expired']       ?? 0);
-$amcNa         = (int)($stats['amc_na']            ?? 0);
+$amcActive     = $amc['active'];
+$amcExpired    = $amc['expired'];
+$amcNa         = $amc['not_applicable'];
+
+$palette       = ['#0F6CBD', '#107C10', '#CA5010', '#8764B8', '#038387', '#D13438', '#986F0B', '#5C2E91', '#A19F9D'];
+$productLabels = array_keys($byProduct);
+$productCounts = array_values($byProduct);
+$productColors = array_map(fn($i) => $palette[$i % count($palette)], array_keys($productLabels));
+$viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expired' : 'active');
 ?>
 <div class="fab-page-header">
   <h1 class="fab-page-title">Dashboard</h1>
@@ -53,41 +57,46 @@ $amcNa         = (int)($stats['amc_na']            ?? 0);
   <?php endif; ?>
 </div>
 
+<!-- Segment selector: drives the charts and the table below -->
+<form method="GET" action="<?= BASE_URL ?>/dashboard" class="d-flex align-items-center gap-2 mb-3">
+  <label for="dashView" class="fw-semibold mb-0">Show:</label>
+  <select id="dashView" name="view" class="form-select" style="width:auto" onchange="this.form.submit()">
+    <?php foreach ($views as $v => $label): ?>
+    <option value="<?= $v ?>" <?= $view === $v ? 'selected' : '' ?>><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></option>
+    <?php endforeach; ?>
+  </select>
+  <noscript><button type="submit" class="btn btn-sm btn-outline-secondary">Apply</button></noscript>
+</form>
+
 <!-- Charts row -->
 <div class="row g-3 mb-4">
 
-  <!-- Donut chart: License Status -->
+  <!-- Donut chart: selected licenses by product -->
   <div class="col-lg-5">
     <div class="fab-card h-100">
-      <h6 class="fw-semibold mb-3">License Status Distribution</h6>
+      <h6 class="fw-semibold mb-3"><?= htmlspecialchars($views[$view], ENT_QUOTES, 'UTF-8') ?> by Product</h6>
+      <?php if (empty($licenses)): ?>
+      <div class="text-muted-fab text-center" style="height:220px;display:flex;align-items:center;justify-content:center;">No licenses in this group.</div>
+      <?php else: ?>
       <div style="position:relative;height:220px;display:flex;align-items:center;justify-content:center;">
         <canvas id="licenseStatusChart"></canvas>
       </div>
       <div class="d-flex flex-wrap justify-content-center gap-3 mt-3" style="font-size:13px">
+        <?php foreach ($productLabels as $i => $name): ?>
         <span class="d-flex align-items-center gap-1">
-          <span style="width:12px;height:12px;border-radius:50%;background:#107C10;flex-shrink:0"></span>
-          Active <strong><?= $activeCount ?></strong>
+          <span style="width:12px;height:12px;border-radius:50%;background:<?= $productColors[$i] ?>;flex-shrink:0"></span>
+          <?= htmlspecialchars($name, ENT_QUOTES, 'UTF-8') ?> <strong><?= $productCounts[$i] ?></strong>
         </span>
-        <span class="d-flex align-items-center gap-1">
-          <span style="width:12px;height:12px;border-radius:50%;background:#CA5010;flex-shrink:0"></span>
-          Grace <strong><?= $graceCount ?></strong>
-        </span>
-        <span class="d-flex align-items-center gap-1">
-          <span style="width:12px;height:12px;border-radius:50%;background:#D13438;flex-shrink:0"></span>
-          Expired <strong><?= $expiredCount ?></strong>
-        </span>
-        <span class="d-flex align-items-center gap-1">
-          <span style="width:12px;height:12px;border-radius:50%;background:#A19F9D;flex-shrink:0"></span>
-          Revoked <strong><?= $revokedCount ?></strong>
-        </span>
+        <?php endforeach; ?>
       </div>
+      <?php endif; ?>
     </div>
   </div>
 
-  <!-- Bar chart: AMC Status -->
+  <!-- Bar chart: AMC status of selected licenses -->
   <div class="col-lg-7">
     <div class="fab-card h-100">
-      <h6 class="fw-semibold mb-3">AMC Status Breakdown</h6>
+      <h6 class="fw-semibold mb-3">AMC Status — <?= htmlspecialchars($views[$view], ENT_QUOTES, 'UTF-8') ?></h6>
       <div style="position:relative;height:220px;">
         <canvas id="amcStatusChart"></canvas>
       </div>
@@ -113,11 +122,11 @@ $amcNa         = (int)($stats['amc_na']            ?? 0);
 <!-- Expiring soon table -->
 <div class="fab-card p-0">
   <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
-    <h6 class="mb-0 fw-semibold">Licenses Expiring Within 30 Days</h6>
-    <a href="<?= BASE_URL ?>/licenses?status=active" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right me-1"></i>View All</a>
+    <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($views[$view], ENT_QUOTES, 'UTF-8') ?> <span class="text-muted-fab fw-normal">(<?= count($licenses) ?>)</span></h6>
+    <a href="<?= $viewAllUrl ?>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right me-1"></i>View All</a>
   </div>
-  <?php if (empty($expiring)): ?>
-  <div class="px-4 py-4 text-muted-fab text-center">No licenses expiring soon.</div>
+  <?php if (empty($licenses)): ?>
+  <div class="px-4 py-4 text-muted-fab text-center">No licenses in this group.</div>
   <?php else: ?>
   <div class="table-responsive">
     <table class="fab-table">
@@ -133,7 +142,7 @@ $amcNa         = (int)($stats['amc_na']            ?? 0);
         </tr>
       </thead>
       <tbody>
-        <?php foreach ($expiring as $lic): ?>
+        <?php foreach ($licenses as $lic): ?>
         <?php $days = (int)$lic['days_left']; ?>
         <tr>
           <td>
@@ -144,8 +153,12 @@ $amcNa         = (int)($stats['amc_na']            ?? 0);
           </td>
           <td><?= htmlspecialchars($lic['product_name'], ENT_QUOTES, 'UTF-8') ?></td>
           <td><span class="text-capitalize"><?= htmlspecialchars($lic['license_type'], ENT_QUOTES, 'UTF-8') ?></span></td>
-          <td><?= htmlspecialchars($lic['expiry_date'], ENT_QUOTES, 'UTF-8') ?></td>
-          <td><span class="days-badge <?= daysClass($days) ?>"><?= $days ?> days</span></td>
+          <td><?= $lic['expiry_date'] ? date('d/m/Y', strtotime($lic['expiry_date'])) : '—' ?></td>
+          <td>
+            <?php if ($lic['expiry_date']): ?>
+            <span class="days-badge <?= daysClass($days) ?>"><?= $days ?> days</span>
+            <?php else: ?>—<?php endif; ?>
+          </td>
           <td><span class="badge badge-<?= htmlspecialchars($lic['license_status'], ENT_QUOTES, 'UTF-8') ?>"><?= ucfirst($lic['license_status']) ?></span></td>
           <td class="action-links">
             <a href="<?= BASE_URL ?>/licenses/view/<?= (int)$lic['id'] ?>" class="btn btn-sm btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
@@ -166,14 +179,15 @@ $amcNa         = (int)($stats['amc_na']            ?? 0);
   Chart.defaults.font.family = "'Segoe UI', system-ui, -apple-system, sans-serif";
   Chart.defaults.font.size   = 13;
 
-  // --- Donut: License Status ---
-  new Chart(document.getElementById('licenseStatusChart'), {
+  // --- Donut: selected licenses by product ---
+  const donutEl = document.getElementById('licenseStatusChart');
+  if (donutEl) new Chart(donutEl, {
     type: 'doughnut',
     data: {
-      labels: ['Active', 'Grace', 'Expired', 'Revoked'],
+      labels: <?= json_encode($productLabels, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>,
       datasets: [{
-        data: [<?= $activeCount ?>, <?= $graceCount ?>, <?= $expiredCount ?>, <?= $revokedCount ?>],
-        backgroundColor: ['#107C10', '#CA5010', '#D13438', '#A19F9D'],
+        data: <?= json_encode($productCounts) ?>,
+        backgroundColor: <?= json_encode($productColors) ?>,
         borderWidth: 2,
         borderColor: '#fff',
         hoverOffset: 6,

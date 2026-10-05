@@ -133,6 +133,30 @@ class LicenseModel extends BaseModel {
         return $stmt->fetchAll();
     }
 
+    /** Dashboard segments: 'active', 'expiring' (next $days days) or 'expired' — same rules as the stat cards. */
+    public function getDashboardSegment(string $segment, int $days = 30): array {
+        $where  = match ($segment) {
+            'active'  => "l.license_status = 'active'",
+            'expired' => "l.license_status = 'expired'",
+            default   => "l.license_status IN ('active','grace')
+                          AND DATEDIFF(l.expiry_date, CURDATE()) BETWEEN 0 AND ?",
+        };
+        $params = $segment === 'active' || $segment === 'expired' ? [] : [$days];
+        $order  = $segment === 'expired' ? 'l.expiry_date DESC' : 'l.expiry_date ASC';
+
+        $stmt = $this->pdo->prepare(
+            "SELECT l.*, DATEDIFF(l.expiry_date, CURDATE()) AS days_left,
+                    c.company_name, c.customer_id AS cust_code, p.product_name
+             FROM licenses l
+             JOIN customers c ON c.id = l.customer_id
+             JOIN products  p ON p.id = l.product_id
+             WHERE {$where}
+             ORDER BY {$order}, l.id"
+        );
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getStatCounts(): array {
         $row = $this->pdo->query(
             "SELECT
