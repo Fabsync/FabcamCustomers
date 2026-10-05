@@ -9,6 +9,9 @@ function dBadge(int $d): string {
 function row(string $label, string $value): void {
     echo '<tr><td class="text-muted-fab" style="width:180px">'.$label.'</td><td>'.($value ?: '<span class="text-muted-fab">—</span>').'</td></tr>';
 }
+function fmtDate(?string $d, string $fmt = 'd/m/Y'): string {
+    return $d ? date($fmt, strtotime($d)) : '';
+}
 ?>
 <div class="fab-page-header">
   <div>
@@ -48,12 +51,12 @@ function row(string $label, string $value): void {
       <div class="fab-section-label">Dates &amp; Pricing</div>
       <table class="table table-sm table-borderless mb-0">
         <?php
-        row('Purchase Date',  htmlspecialchars($license['purchase_date']??'',ENT_QUOTES,'UTF-8'));
-        row('Expiry Date',    htmlspecialchars($license['expiry_date']??'',ENT_QUOTES,'UTF-8'));
+        row('Purchase Date',  fmtDate($license['purchase_date'] ?? null));
+        row('Expiry Date',    fmtDate($license['expiry_date'] ?? null));
         row('Days Left',      $license['expiry_date'] ? dBadge($days) : '—');
         row('Purchase Price', $license['purchase_price'] ? '₹ '.number_format((float)$license['purchase_price'],2) : '');
         row('AMC Cost',       $license['amc_cost'] ? '₹ '.number_format((float)$license['amc_cost'],2) : '');
-        row('Renewal Date',   htmlspecialchars($license['renewal_date']??'',ENT_QUOTES,'UTF-8'));
+        row('Renewal Date',   fmtDate($license['renewal_date'] ?? null));
         $amc = $license['amc_status'];
         $cls = $amc==='active'?'amc-active':($amc==='expired'?'amc-expired':'na');
         row('AMC Status', '<span class="badge badge-'.$cls.'">'.htmlspecialchars(str_replace('_',' ',ucfirst($amc)),ENT_QUOTES,'UTF-8').'</span>');
@@ -75,7 +78,7 @@ function row(string $label, string $value): void {
       <table class="table table-sm table-borderless mb-0">
         <?php
         row('Last Updated By', htmlspecialchars($license['updated_by_name']??'—',ENT_QUOTES,'UTF-8'));
-        row('Last Updated',    htmlspecialchars($license['last_updated']??'',ENT_QUOTES,'UTF-8'));
+        row('Last Updated',    fmtDate($license['last_updated'] ?? null, 'd/m/Y H:i'));
         ?>
       </table>
     </div>

@@ -100,7 +100,7 @@ function daysClass(int $d): string {
             <span title="<?= htmlspecialchars($machine, ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars(mb_substr($machine, 0, 15), ENT_QUOTES, 'UTF-8') ?><?= mb_strlen($machine) > 15 ? '…' : '' ?></span>
             <?php endif; ?>
           </td>
-          <td><?= htmlspecialchars($lic['expiry_date'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+          <td><?= $lic['expiry_date'] ? date('d/m/Y', strtotime($lic['expiry_date'])) : '—' ?></td>
           <td>
             <?php if ($lic['expiry_date']): ?>
             <span class="days-badge <?= daysClass($days) ?>"><?= $days ?> days</span>
