@@ -134,6 +134,23 @@ class CustomerController extends Controller {
         $this->redirect('/customers');
     }
 
+    public function bulkDelete(): void {
+        $this->requireAuth();
+        $this->requireRole('admin');
+        $this->validateCsrf();
+
+        $ids = (array)($_POST['ids'] ?? []);
+        if (!$ids) {
+            $this->flash('warning', 'No customers selected.');
+            $this->redirect('/customers');
+            return;
+        }
+
+        $count = (new CustomerModel())->deleteManyWithLicenses($ids);
+        $this->flash('success', $count . ' customer(s) and all associated licenses deleted.');
+        $this->redirect('/customers');
+    }
+
     private function sanitizePost(): array {
         return [
             'company_name'   => trim($_POST['company_name']   ?? ''),

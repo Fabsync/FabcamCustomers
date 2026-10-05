@@ -173,12 +173,51 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!fresh) return;
             target.innerHTML = fresh.innerHTML;
             enhance(target);
+            refreshBulkForms();
             history.replaceState(null, '', url);
           })
           .catch(function (err) { if (err.name !== 'AbortError') console.error(err); });
       }, 300);
     });
   });
+
+  // 5b. Bulk select + delete. Row checkboxes live in the table and point at a
+  // form outside it via form="…", so they survive live-filter swaps.
+  function bulkItems(formId) {
+    return document.querySelectorAll('input[data-bulk-item][form="' + formId + '"]');
+  }
+  function refreshBulkForms() {
+    document.querySelectorAll('form[data-bulk-form]').forEach(function (form) {
+      var items   = bulkItems(form.id);
+      var checked = Array.prototype.filter.call(items, function (cb) { return cb.checked; }).length;
+      var count   = form.querySelector('[data-bulk-count]');
+      var submit  = form.querySelector('[data-bulk-submit]');
+      if (count)  count.textContent = checked;
+      if (submit) submit.disabled = checked === 0;
+      var all = document.querySelector('input[data-bulk-all="' + form.id + '"]');
+      if (all) {
+        all.checked       = items.length > 0 && checked === items.length;
+        all.indeterminate = checked > 0 && checked < items.length;
+      }
+    });
+  }
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches('input[data-bulk-all]')) {
+      bulkItems(t.getAttribute('data-bulk-all')).forEach(function (cb) { cb.checked = t.checked; });
+      refreshBulkForms();
+    } else if (t.matches('input[data-bulk-item]')) {
+      refreshBulkForms();
+    }
+  });
+  document.querySelectorAll('form[data-bulk-form]').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      var n = Array.prototype.filter.call(bulkItems(form.id), function (cb) { return cb.checked; }).length;
+      var msg = (form.getAttribute('data-bulk-confirm') || 'Delete {n} selected item(s)?').replace('{n}', n);
+      if (n === 0 || !window.confirm(msg)) e.preventDefault();
+    });
+  });
+  refreshBulkForms();
 
   // 6. Mobile sidebar toggle
   const sidebarToggle  = document.getElementById('sidebarToggle');

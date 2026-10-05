@@ -147,6 +147,22 @@ class LicenseController extends Controller {
         }
     }
 
+    public function bulkDelete(): void {
+        $this->requireAuth();
+        $this->validateCsrf();
+
+        $ids = (array)($_POST['ids'] ?? []);
+        if (!$ids) {
+            $this->flash('warning', 'No licenses selected.');
+            $this->redirect('/licenses');
+            return;
+        }
+
+        $count = (new LicenseModel())->deleteMany($ids);
+        $this->flash('success', $count . ' license(s) deleted.');
+        $this->redirect('/licenses');
+    }
+
     private function sanitizePost(): array {
         return [
             'customer_id'    => (int)($_POST['customer_id']    ?? 0),

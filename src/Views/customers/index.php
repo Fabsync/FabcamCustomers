@@ -28,6 +28,16 @@ $sortIcon = function(string $col) use ($sort, $dir): string {
   <?php endif; ?>
 </form>
 
+<?php $isAdmin = ($_SESSION['user']['role'] ?? '') === 'admin'; ?>
+<?php if ($isAdmin): ?>
+<form method="POST" action="<?= BASE_URL ?>/customers/bulk-delete" id="customerBulkForm" class="mb-2"
+      data-bulk-form data-bulk-confirm="Delete {n} selected customer(s) and ALL their licenses? This cannot be undone.">
+  <button type="submit" class="btn btn-sm btn-outline-danger" data-bulk-submit disabled>
+    <i class="bi bi-trash3 me-1"></i>Delete selected (<span data-bulk-count>0</span>)
+  </button>
+</form>
+<?php endif; ?>
+
 <div id="customerResults">
 <div class="fab-table-wrap">
   <?php if (empty($customers)): ?>
@@ -37,6 +47,9 @@ $sortIcon = function(string $col) use ($sort, $dir): string {
     <table class="fab-table" id="customerTable">
       <thead>
         <tr>
+          <?php if ($isAdmin): ?>
+          <th style="width:32px"><input type="checkbox" class="form-check-input" data-bulk-all="customerBulkForm" title="Select all"></th>
+          <?php endif; ?>
           <th><a href="<?= $sortUrl('customer_id') ?>" class="fab-sort-th <?= $sort==='customer_id'?'is-sorted':'' ?>">Customer ID <?= $sortIcon('customer_id') ?></a></th>
           <th><a href="<?= $sortUrl('company_name') ?>" class="fab-sort-th <?= $sort==='company_name'?'is-sorted':'' ?>">Company Name <?= $sortIcon('company_name') ?></a></th>
           <th><a href="<?= $sortUrl('contact_person') ?>" class="fab-sort-th <?= $sort==='contact_person'?'is-sorted':'' ?>">Contact <?= $sortIcon('contact_person') ?></a></th>
@@ -50,6 +63,9 @@ $sortIcon = function(string $col) use ($sort, $dir): string {
       <tbody>
         <?php foreach ($customers as $c): ?>
         <tr>
+          <?php if ($isAdmin): ?>
+          <td><input type="checkbox" class="form-check-input" name="ids[]" value="<?= (int)$c['id'] ?>" form="customerBulkForm" data-bulk-item></td>
+          <?php endif; ?>
           <td><span class="badge badge-admin"><?= htmlspecialchars($c['customer_id'], ENT_QUOTES, 'UTF-8') ?></span></td>
           <td>
             <a href="<?= BASE_URL ?>/customers/view/<?= (int)$c['id'] ?>" class="fw-semibold">
@@ -64,7 +80,7 @@ $sortIcon = function(string $col) use ($sort, $dir): string {
           <td class="action-links">
             <a href="<?= BASE_URL ?>/customers/view/<?= (int)$c['id'] ?>" class="btn btn-sm btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
             <a href="<?= BASE_URL ?>/customers/edit/<?= (int)$c['id'] ?>" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
-            <?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
+            <?php if ($isAdmin): ?>
             <form method="POST" action="<?= BASE_URL ?>/customers/delete/<?= (int)$c['id'] ?>" class="d-inline">
               <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"
                       data-confirm="Delete &quot;<?= htmlspecialchars($c['company_name'], ENT_QUOTES, 'UTF-8') ?>&quot; and ALL their licenses? This cannot be undone."><i class="bi bi-trash3"></i></button>

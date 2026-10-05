@@ -116,6 +116,26 @@ class CustomerModel extends BaseModel {
         return $this->pdo->prepare('DELETE FROM customers WHERE id = ?')->execute([$id]);
     }
 
+    /** Deletes the given customers and all their licenses in one transaction. Returns customers deleted. */
+    public function deleteManyWithLicenses(array $ids): int {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($i) => $i > 0)));
+        if (!$ids) return 0;
+        $in = implode(',', array_fill(0, count($ids), '?'));
+
+        $this->pdo->beginTransaction();
+        try {
+            // FK is RESTRICT — delete child licenses first, then the customers
+            $this->pdo->prepare("DELETE FROM licenses WHERE customer_id IN ($in)")->execute($ids);
+            $stmt = $this->pdo->prepare("DELETE FROM customers WHERE id IN ($in)");
+            $stmt->execute($ids);
+            $this->pdo->commit();
+            return $stmt->rowCount();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
     public function findByCode(string $code): array|false {
         $stmt = $this->pdo->prepare('SELECT * FROM customers WHERE customer_id = ? LIMIT 1');
         $stmt->execute([$code]);

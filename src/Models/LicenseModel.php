@@ -219,6 +219,16 @@ class LicenseModel extends BaseModel {
         return $this->pdo->prepare('DELETE FROM licenses WHERE id = ?')->execute([$id]);
     }
 
+    /** Returns the number of licenses deleted. */
+    public function deleteMany(array $ids): int {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn($i) => $i > 0)));
+        if (!$ids) return 0;
+        $in   = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->pdo->prepare("DELETE FROM licenses WHERE id IN ($in)");
+        $stmt->execute($ids);
+        return $stmt->rowCount();
+    }
+
     public function deleteByCustomer(int $customerId): bool {
         return $this->pdo->prepare('DELETE FROM licenses WHERE customer_id = ?')->execute([$customerId]);
     }

@@ -55,6 +55,13 @@ function daysClass(int $d): string {
   <a href="<?= BASE_URL ?>/licenses" class="btn btn-filter-clear"><i class="bi bi-x-lg me-1"></i>Clear</a>
 </form>
 
+<form method="POST" action="<?= BASE_URL ?>/licenses/bulk-delete" id="licenseBulkForm" class="mb-2"
+      data-bulk-form data-bulk-confirm="Delete {n} selected license(s)? This cannot be undone.">
+  <button type="submit" class="btn btn-sm btn-outline-danger" data-bulk-submit disabled>
+    <i class="bi bi-trash3 me-1"></i>Delete selected (<span data-bulk-count>0</span>)
+  </button>
+</form>
+
 <div id="licenseResults">
 <div class="fab-table-wrap">
   <?php if (empty($licenses)): ?>
@@ -64,6 +71,7 @@ function daysClass(int $d): string {
     <table class="fab-table">
       <thead>
         <tr>
+          <th style="width:32px"><input type="checkbox" class="form-check-input" data-bulk-all="licenseBulkForm" title="Select all"></th>
           <th><a href="<?= $sortUrl('company_name') ?>" class="fab-sort-th <?= $sort==='company_name'?'is-sorted':'' ?>">Customer <?= $sortIcon('company_name') ?></a></th>
           <th><a href="<?= $sortUrl('product_name') ?>" class="fab-sort-th <?= $sort==='product_name'?'is-sorted':'' ?>">Product <?= $sortIcon('product_name') ?></a></th>
           <th><a href="<?= $sortUrl('license_type') ?>" class="fab-sort-th <?= $sort==='license_type'?'is-sorted':'' ?>">Type <?= $sortIcon('license_type') ?></a></th>
@@ -80,6 +88,7 @@ function daysClass(int $d): string {
         <?php foreach ($licenses as $lic): ?>
         <?php $days = (int)$lic['days_left']; ?>
         <tr>
+          <td><input type="checkbox" class="form-check-input" name="ids[]" value="<?= (int)$lic['id'] ?>" form="licenseBulkForm" data-bulk-item></td>
           <td>
             <a href="<?= BASE_URL ?>/customers/view/<?= (int)$lic['customer_id'] ?>" class="fw-semibold">
               <?= htmlspecialchars($lic['company_name'], ENT_QUOTES, 'UTF-8') ?>

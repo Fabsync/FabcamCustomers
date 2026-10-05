@@ -48,6 +48,7 @@ $router->add('GET',  '/customers/edit/{id}',   'CustomerController', 'edit');
 $router->add('POST', '/customers/edit/{id}',   'CustomerController', 'update');
 $router->add('GET',  '/customers/view/{id}',   'CustomerController', 'view');
 $router->add('POST', '/customers/delete/{id}', 'CustomerController', 'delete');
+$router->add('POST', '/customers/bulk-delete',  'CustomerController', 'bulkDelete');
 
 // Licenses
 $router->add('GET',  '/licenses',             'LicenseController', 'index');
@@ -57,6 +58,7 @@ $router->add('GET',  '/licenses/edit/{id}',   'LicenseController', 'edit');
 $router->add('POST', '/licenses/edit/{id}',   'LicenseController', 'update');
 $router->add('GET',  '/licenses/view/{id}',   'LicenseController', 'view');
 $router->add('POST', '/licenses/delete/{id}', 'LicenseController', 'delete');
+$router->add('POST', '/licenses/bulk-delete',  'LicenseController', 'bulkDelete');
 
 // Products
 $router->add('GET',  '/products',             'ProductController', 'index');
