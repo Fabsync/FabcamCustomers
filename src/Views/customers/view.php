@@ -14,6 +14,7 @@ function daysClass(int $d): string {
   <div class="d-flex gap-2 flex-wrap">
     <a href="<?= BASE_URL ?>/customers/edit/<?= (int)$customer['id'] ?>" class="btn btn-accent"><i class="bi bi-pencil me-1"></i>Edit</a>
     <a href="<?= BASE_URL ?>/licenses/add?customer_id=<?= (int)$customer['id'] ?>" class="btn btn-outline-secondary"><i class="bi bi-file-earmark-plus me-1"></i>Add License</a>
+    <a href="<?= BASE_URL ?>/leads/add?customer_id=<?= (int)$customer['id'] ?>" class="btn btn-outline-secondary"><i class="bi bi-chat-left-text me-1"></i>New Lead</a>
     <?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
     <form method="POST" action="<?= BASE_URL ?>/customers/delete/<?= (int)$customer['id'] ?>" class="d-inline">
       <button type="submit" class="btn btn-outline-danger"
@@ -102,6 +103,40 @@ function daysClass(int $d): string {
               <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"
                       data-confirm="Delete this license? This cannot be undone."><i class="bi bi-trash3"></i></button>
             </form>
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+  <?php endif; ?>
+</div>
+
+<!-- Leads / enquiries sub-table -->
+<div class="fab-card p-0 mt-4">
+  <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+    <h6 class="mb-0 fw-semibold">Leads &amp; Enquiries (<?= count($leads) ?>)</h6>
+    <a href="<?= BASE_URL ?>/leads/add?customer_id=<?= (int)$customer['id'] ?>" class="btn btn-sm btn-accent">+ New Lead</a>
+  </div>
+  <?php if (empty($leads)): ?>
+  <div class="px-4 py-4 text-muted-fab text-center">No leads yet.</div>
+  <?php else: ?>
+  <div class="table-responsive">
+    <table class="fab-table">
+      <thead>
+        <tr><th>Lead #</th><th>Product</th><th>Interest</th><th>Status</th><th>Next Follow-up</th><th>Created</th><th></th></tr>
+      </thead>
+      <tbody>
+        <?php foreach ($leads as $ld): $ldClosed = in_array($ld['status'], LeadModel::CLOSED_STATUSES, true); ?>
+        <tr class="<?= $ldClosed ? 'lead-row-' . htmlspecialchars($ld['status'], ENT_QUOTES, 'UTF-8') : '' ?>">
+          <td><span class="badge badge-admin"><?= htmlspecialchars($ld['lead_number'], ENT_QUOTES, 'UTF-8') ?></span></td>
+          <td><?= htmlspecialchars($ld['product_name'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+          <td><span class="badge badge-interest-<?= htmlspecialchars($ld['interest_level'], ENT_QUOTES, 'UTF-8') ?>"><?= LeadModel::INTEREST_LEVELS[$ld['interest_level']] ?? '' ?></span></td>
+          <td><span class="badge badge-lead-<?= htmlspecialchars($ld['status'], ENT_QUOTES, 'UTF-8') ?>"><?= LeadModel::STATUSES[$ld['status']] ?? '' ?></span></td>
+          <td><?= $ldClosed ? '—' : htmlspecialchars($ld['next_follow_up'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
+          <td class="text-muted-fab" style="font-size:12px"><?= htmlspecialchars(substr($ld['created_at'], 0, 10), ENT_QUOTES, 'UTF-8') ?></td>
+          <td class="action-links">
+            <a href="<?= BASE_URL ?>/leads/view/<?= (int)$ld['id'] ?>" class="btn btn-sm btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
           </td>
         </tr>
         <?php endforeach; ?>

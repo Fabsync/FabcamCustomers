@@ -111,6 +111,7 @@ class CustomerController extends Controller {
             'pageTitle' => $customer['company_name'],
             'customer'  => $customer,
             'licenses'  => $licenses,
+            'leads'     => (new LeadModel())->getByCustomer((int)$id),
         ]);
     }
 

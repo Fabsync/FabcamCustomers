@@ -16,6 +16,7 @@ require_once __DIR__ . '/../src/Models/CustomerModel.php';
 require_once __DIR__ . '/../src/Models/LicenseModel.php';
 require_once __DIR__ . '/../src/Models/EstimateModel.php';
 require_once __DIR__ . '/../src/Models/ExportModel.php';
+require_once __DIR__ . '/../src/Models/LeadModel.php';
 
 // Controllers
 require_once __DIR__ . '/../src/Controllers/AuthController.php';
@@ -27,6 +28,7 @@ require_once __DIR__ . '/../src/Controllers/UserController.php';
 require_once __DIR__ . '/../src/Controllers/EstimateController.php';
 require_once __DIR__ . '/../src/Controllers/ExportController.php';
 require_once __DIR__ . '/../src/Controllers/ImportController.php';
+require_once __DIR__ . '/../src/Controllers/LeadController.php';
 
 // Routes
 $router = new Router();
@@ -86,8 +88,19 @@ $router->add('GET',  '/estimates/view/{id}',   'EstimateController', 'view');
 $router->add('GET',  '/estimates/pdf/{id}',    'EstimateController', 'generatePdf');
 $router->add('POST', '/estimates/delete/{id}', 'EstimateController', 'delete');
 
+// Leads / Enquiries
+$router->add('GET',  '/leads',                                    'LeadController', 'index');
+$router->add('GET',  '/leads/add',                                'LeadController', 'create');
+$router->add('POST', '/leads/add',                                'LeadController', 'store');
+$router->add('GET',  '/leads/edit/{id}',                          'LeadController', 'edit');
+$router->add('POST', '/leads/edit/{id}',                          'LeadController', 'update');
+$router->add('GET',  '/leads/view/{id}',                          'LeadController', 'view');
+$router->add('POST', '/leads/delete/{id}',                        'LeadController', 'delete');
+$router->add('POST', '/leads/{id}/activity',                      'LeadController', 'addActivity');
+$router->add('POST', '/leads/{id}/activity/delete/{activity_id}', 'LeadController', 'deleteActivity');
+
 // Export
-$router->add('GET', '/export',          'ExportController', 'index');
+$router->add('GET', '/export',         'ExportController', 'index');
 $router->add('GET', '/export/download', 'ExportController', 'download');
 
 // Import
