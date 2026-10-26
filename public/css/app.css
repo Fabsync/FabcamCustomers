@@ -577,14 +577,16 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
 /* Leads list: one line per lead, long text truncated with … (full text on hover) */
 .fab-table.lead-table thead th,
 .fab-table.lead-table tbody td { white-space: nowrap !important; vertical-align: middle; }
+.fab-table.lead-table thead th,
+.fab-table.lead-table tbody td { padding-left: 10px; padding-right: 10px; }
 .lead-trunc {
-  max-width:     160px;
+  max-width:     110px;
   overflow:      hidden;
   text-overflow: ellipsis;
   white-space:   nowrap;
 }
-.lead-trunc-company     { max-width: 300px; }
-.lead-trunc-sm          { max-width: 120px; }
+.lead-trunc-company     { max-width: 200px; }
+.lead-trunc-sm          { max-width: 90px; }
 
 /* Row highlighting for closed leads */
 .fab-table tbody tr.lead-row-won,
