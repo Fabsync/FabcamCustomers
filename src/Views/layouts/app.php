@@ -8,7 +8,7 @@
   <meta name="csrf-token" content="<?= htmlspecialchars(csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
   <link rel="stylesheet" href="<?= BASE_URL ?>/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/bootstrap-icons/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="<?= BASE_URL ?>/css/app.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/css/app.css?v=<?= (int)@filemtime(__DIR__ . '/../../../public/css/app.css') ?>">
 </head>
 <body>
 

@@ -575,8 +575,8 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
 .badge-interest-cold { background: #E8F1FB; color: #2B6CB0;        border: 1px solid #B7D0EE; }
 
 /* Leads list: one line per lead, long text truncated with … (full text on hover) */
-.lead-table th,
-.lead-table td          { white-space: nowrap; vertical-align: middle; }
+.fab-table.lead-table thead th,
+.fab-table.lead-table tbody td { white-space: nowrap !important; vertical-align: middle; }
 .lead-trunc {
   max-width:     160px;
   overflow:      hidden;
