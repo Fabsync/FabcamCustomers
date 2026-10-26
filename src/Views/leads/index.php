@@ -59,7 +59,7 @@ $cards = [
   <div class="px-4 py-4 text-muted-fab text-center">No leads found.</div>
   <?php else: ?>
   <div class="table-responsive">
-    <table class="fab-table">
+    <table class="fab-table lead-table">
       <thead>
         <tr>
           <th>Lead #</th>
@@ -80,13 +80,14 @@ $cards = [
         ?>
         <tr class="<?= $closed ? 'lead-row-' . $h($l['status']) : '' ?>">
           <td><span class="badge badge-admin"><?= $h($l['lead_number']) ?></span></td>
+          <?php $contact = trim($l['contact_person'] . ($l['contact_person'] && $l['mobile'] ? ' · ' : '') . $l['mobile']); ?>
           <td>
-            <a href="<?= BASE_URL ?>/leads/view/<?= (int)$l['id'] ?>" class="fw-semibold"><?= $h($l['company_name']) ?></a>
-            <div class="text-muted-fab" style="font-size:12px">
-              <?= $h($l['contact_person']) ?><?= $l['contact_person'] && $l['mobile'] ? ' · ' : '' ?><?= $h($l['mobile']) ?>
+            <div class="lead-trunc lead-trunc-company" title="<?= $h($l['company_name'] . ($contact !== '' ? ' — ' . $contact : '')) ?>">
+              <a href="<?= BASE_URL ?>/leads/view/<?= (int)$l['id'] ?>" class="fw-semibold"><?= $h($l['company_name']) ?></a>
+              <?php if ($contact !== ''): ?><span class="text-muted-fab" style="font-size:12px"> · <?= $h($contact) ?></span><?php endif; ?>
             </div>
           </td>
-          <td><?= $h($l['product_name'] ?? '—') ?></td>
+          <td><div class="lead-trunc" title="<?= $h($l['product_name'] ?? '') ?>"><?= $h($l['product_name'] ?? '—') ?></div></td>
           <td><span class="badge badge-interest-<?= $h($l['interest_level']) ?>"><?= LeadModel::INTEREST_LEVELS[$l['interest_level']] ?? '' ?></span></td>
           <td>
             <span class="badge badge-lead-<?= $h($l['status']) ?>">
@@ -104,7 +105,7 @@ $cards = [
             <?php else: ?>—<?php endif; ?>
           </td>
           <td class="text-end"><?= $l['expected_value'] !== null ? '&#8377; ' . number_format((float)$l['expected_value'], 0) : '—' ?></td>
-          <td style="font-size:13px"><?= $h($l['assigned_to_name'] ?? '—') ?></td>
+          <td style="font-size:13px"><div class="lead-trunc lead-trunc-sm" title="<?= $h($l['assigned_to_name'] ?? '') ?>"><?= $h($l['assigned_to_name'] ?? '—') ?></div></td>
           <td class="action-links">
             <a href="<?= BASE_URL ?>/leads/view/<?= (int)$l['id'] ?>" class="btn btn-sm btn-outline-secondary" title="View / Log discussion"><i class="bi bi-chat-left-text"></i></a>
             <a href="<?= BASE_URL ?>/leads/edit/<?= (int)$l['id'] ?>" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>

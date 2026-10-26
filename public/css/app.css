@@ -574,6 +574,18 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
 .badge-interest-warm { background: #FFF4CE; color: var(--warning); border: 1px solid #F6D490; }
 .badge-interest-cold { background: #E8F1FB; color: #2B6CB0;        border: 1px solid #B7D0EE; }
 
+/* Leads list: one line per lead, long text truncated with … (full text on hover) */
+.lead-table th,
+.lead-table td          { white-space: nowrap; vertical-align: middle; }
+.lead-trunc {
+  max-width:     160px;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+  white-space:   nowrap;
+}
+.lead-trunc-company     { max-width: 300px; }
+.lead-trunc-sm          { max-width: 120px; }
+
 /* Row highlighting for closed leads */
 .fab-table tbody tr.lead-row-won,
 .fab-table tbody tr.lead-row-won:nth-child(even)            { background: #EAF7E9; box-shadow: inset 4px 0 0 var(--success); }
