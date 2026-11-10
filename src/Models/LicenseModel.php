@@ -171,8 +171,8 @@ class LicenseModel extends BaseModel {
                SUM(CASE WHEN l.amc_status = 'active'         THEN 1 ELSE 0 END)   AS amc_active,
                SUM(CASE WHEN l.amc_status = 'expired'        THEN 1 ELSE 0 END)   AS amc_expired,
                SUM(CASE WHEN l.amc_status = 'not_applicable' THEN 1 ELSE 0 END)   AS amc_na,
-               COALESCE(SUM(CASE WHEN l.amc_status = 'expired' THEN l.amc_cost ELSE 0 END), 0)
-                                                                                   AS total_amc_revenue
+               -- Sum of the AMC Cost column for every license; empty (NULL) AMC Cost adds nothing
+               COALESCE(SUM(l.amc_cost), 0)                                        AS total_amc_revenue
              FROM licenses l
              JOIN customers c ON c.id = l.customer_id"
         )->fetch();
