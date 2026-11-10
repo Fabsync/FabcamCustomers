@@ -18,7 +18,21 @@ CREATE TABLE users (
   role          ENUM('admin','sales') DEFAULT 'sales',
   is_active     TINYINT(1)    DEFAULT 1,
   created_at    DATETIME      DEFAULT CURRENT_TIMESTAMP,
-  last_login    DATETIME      NULL
+  last_login    DATETIME      NULL,
+  failed_login_count INT UNSIGNED NOT NULL DEFAULT 0,
+  locked_until  DATETIME      NULL,
+  last_login_ip VARCHAR(45)   NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS security_login_attempts (
+  id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  identifier  VARCHAR(190) NOT NULL,
+  ip_address  VARCHAR(45)  NOT NULL,
+  success     TINYINT(1)   NOT NULL DEFAULT 0,
+  user_agent  VARCHAR(255) NULL,
+  created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_ident_time (identifier, created_at),
+  KEY idx_ip_time    (ip_address, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE customers (

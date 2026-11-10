@@ -7,6 +7,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../src/Core/Database.php';
 require_once __DIR__ . '/../src/Core/Controller.php';
 require_once __DIR__ . '/../src/Core/Router.php';
+require_once __DIR__ . '/../src/Core/LoginGuard.php';
 
 // Models
 require_once __DIR__ . '/../src/Models/BaseModel.php';
