@@ -8,11 +8,12 @@ class ProductController extends Controller {
         $this->render('products/index', [
             'pageTitle' => 'Products',
             'products'  => $products,
+            'canManage' => self::canManage(),
         ]);
     }
 
     public function create(): void {
-        $this->requireRole('admin');
+        $this->requireProductManager();
         $this->render('products/form', [
             'pageTitle' => 'Add Product',
             'product'   => [],
@@ -21,7 +22,7 @@ class ProductController extends Controller {
     }
 
     public function store(): void {
-        $this->requireRole('admin');
+        $this->requireProductManager();
         $this->validateCsrf();
         $d      = $this->sanitizePost();
         $errors = $this->validate($d);
@@ -36,14 +37,14 @@ class ProductController extends Controller {
     }
 
     public function edit(string $id): void {
-        $this->requireRole('admin');
+        $this->requireProductManager();
         $product = (new ProductModel())->findById((int)$id);
         if (!$product) { http_response_code(404); die('Not found'); }
         $this->render('products/form', ['pageTitle'=>'Edit Product','product'=>$product,'errors'=>[]]);
     }
 
     public function update(string $id): void {
-        $this->requireRole('admin');
+        $this->requireProductManager();
         $this->validateCsrf();
         $d      = $this->sanitizePost();
         $errors = $this->validate($d);
@@ -61,7 +62,7 @@ class ProductController extends Controller {
     }
 
     public function delete(string $id): void {
-        $this->requireRole('admin');
+        $this->requireProductManager();
         $this->validateCsrf();
         try {
             (new ProductModel())->delete((int)$id);
@@ -70,6 +71,25 @@ class ProductController extends Controller {
             $this->flash('danger', 'Cannot delete: product is assigned to licenses.');
         }
         $this->redirect('/products');
+    }
+
+    // Roles allowed to add / edit / delete products
+    const MANAGER_ROLES = ['admin', 'sales'];
+
+    public static function canManage(): bool {
+        return in_array($_SESSION['user_role'] ?? '', self::MANAGER_ROLES, true);
+    }
+
+    private function requireProductManager(): void {
+        $this->requireAuth();
+        if (!self::canManage()) {
+            http_response_code(403);
+            $viewPath   = __DIR__ . '/../Views/errors/403.php';
+            $layoutPath = __DIR__ . '/../Views/layouts/app.php';
+            $pageTitle  = 'Access Denied';
+            require $layoutPath;
+            exit;
+        }
     }
 
     private function sanitizePost(): array {
