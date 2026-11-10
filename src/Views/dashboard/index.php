@@ -5,6 +5,14 @@ function daysClass(int $days): string {
     if ($days <= 30) return 'days-warning';
     return 'days-ok';
 }
+// Indian digit grouping: 1234567890.5 -> 1,23,45,67,890.50
+function inrFormat(float $n): string {
+    [$int, $dec] = explode('.', number_format(abs($n), 2, '.', ''));
+    if (strlen($int) > 3) {
+        $int = preg_replace('/\B(?=(\d{2})+(?!\d))/', ',', substr($int, 0, -3)) . ',' . substr($int, -3);
+    }
+    return ($n < 0 ? '-' : '') . $int . '.' . $dec;
+}
 $activeCount   = (int)($stats['active_licenses']  ?? 0);
 $expiredCount  = (int)($stats['expired_licenses'] ?? 0);
 $amcActive     = $amc['active'];
@@ -50,7 +58,7 @@ $viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expire
   <?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
   <div class="col-sm-6 col-xl">
     <div class="fab-stat-card stat-amc">
-      <div class="fab-stat-value" style="font-size:1.35rem">&#8377; <?= number_format((float)($stats['total_amc_revenue'] ?? 0), 2) ?></div>
+      <div class="fab-stat-value" style="font-size:1.35rem">&#8377; <?= inrFormat((float)($stats['total_amc_revenue'] ?? 0)) ?></div>
       <div class="fab-stat-label">Total AMC Revenue</div>
     </div>
   </div>
