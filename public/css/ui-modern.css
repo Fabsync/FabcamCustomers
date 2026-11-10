@@ -217,6 +217,34 @@
   box-shadow: 0 10px 22px -8px rgba(16, 8, 80, .45);
 }
 :where(.ui-modern) .fab-nav-link svg { width: 20px; height: 20px; opacity: .95; }
+
+/* 3D colour icons (Microsoft Fluent Emoji 3D, MIT) — Modern only; Classic keeps the line icons */
+.fab-nav-3d { display: none; }
+:root.ui-modern .fab-nav-link svg { display: none; }
+:root.ui-modern .fab-nav-3d {
+  display: block;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 5px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25);
+  filter: drop-shadow(0 3px 4px rgba(20, 10, 80, .28));
+  transition: transform .25s var(--ease), background .2s;
+}
+:root.ui-modern .fab-nav-link:hover .fab-nav-3d {
+  transform: scale(1.12) rotate(-6deg);
+  background: rgba(255, 255, 255, .26);
+}
+:root.ui-modern .fab-nav-link.active .fab-nav-3d {
+  background: var(--accent-light);
+  box-shadow: none;
+}
+:root.ui-modern .fab-nav-link { padding-top: 7px; padding-bottom: 7px; }
+@media (min-width: 768px) {
+  :root.ui-modern.sb-collapsed .fab-nav-link { padding: 6px 0; }
+}
 :where(.ui-modern) .fab-nav-link:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 /* ---------- Page header ---------- */
