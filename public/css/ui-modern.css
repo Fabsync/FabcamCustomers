@@ -1,0 +1,353 @@
+/* =================================================================
+   Modern UI — layered on top of app.css.
+   Everything is scoped to <html class="ui-modern">; removing that class
+   (the "Classic" switch) returns the original look exactly.
+   Selectors use :where(.ui-modern) so they keep the SAME specificity as the
+   app.css rules they replace (this file loads later, so it wins ties) and
+   never outrank page-specific rules such as the lead row colours.
+   ================================================================= */
+
+/* ---------- Interface switch (shown in both modes) ---------- */
+.fab-ui-switch {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: #F0F0F3;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, .05);
+}
+.fab-ui-switch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: #6B6B80;
+  font: 600 12px/1 var(--font);
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+.fab-ui-switch button:hover { color: #1A1A2E; }
+.fab-ui-switch button[aria-pressed="true"] {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 6px 14px -6px var(--accent);
+}
+.fab-ui-switch button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Tokens ---------- */
+:root.ui-modern {
+  --accent:         #5B4CF0;
+  --accent-hover:   #4A3AE0;
+  --accent-light:   #EFEDFF;
+  --accent-grad:    linear-gradient(135deg, #7B6BFF 0%, #5B4CF0 55%, #4A35D6 100%);
+  --bg:             #F6F6FB;
+  --surface:        #FFFFFF;
+  --border:         #ECECF3;
+  --border-input:   #DEDEEA;
+  --text-primary:   #16162A;
+  --text-secondary: #6B6B85;
+  --text-disabled:  #A3A3B8;
+  --radius:         18px;
+  --radius-sm:      10px;
+  --shadow:         0 1px 2px rgba(22, 22, 42, .04), 0 6px 20px rgba(22, 22, 42, .05);
+  --shadow-md:      0 18px 40px -14px rgba(74, 53, 214, .28), 0 4px 12px rgba(22, 22, 42, .06);
+  --font:           'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --topbar-height:  64px;
+  --m-sb-w:         232px;   /* side panel width — changed by dragging */
+  --m-gap:          14px;
+  --ease:           cubic-bezier(.2, .8, .2, 1);
+}
+:root.ui-modern body {
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(123, 107, 255, .10), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* ---------- Top bar ---------- */
+:where(.ui-modern) .fab-topbar {
+  background: rgba(255, 255, 255, .72);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  backdrop-filter: saturate(160%) blur(16px);
+  border-bottom: 1px solid rgba(22, 22, 42, .05);
+  padding: 0 24px;
+  gap: 14px;
+}
+:where(.ui-modern) .fab-topbar-user {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 6px 4px 12px;
+  box-shadow: var(--shadow);
+}
+:where(.ui-modern) .fab-topbar-user .btn { border-radius: 999px; }
+
+/* ---------- Floating, resizable side panel (desktop) ---------- */
+@media (min-width: 768px) {
+  :where(.ui-modern) .fab-sidebar {
+    top:    calc(var(--topbar-height) + var(--m-gap));
+    left:   var(--m-gap);
+    bottom: var(--m-gap);
+    width:  var(--m-sb-w);
+    background: var(--accent-grad);
+    border: 0;
+    border-radius: 24px;
+    padding: 14px 0;
+    box-shadow: 0 24px 48px -18px rgba(74, 53, 214, .65), inset 0 1px 0 rgba(255, 255, 255, .18);
+    overflow-x: hidden;
+    transition: width .22s var(--ease);
+  }
+  :where(.ui-modern) .fab-content {
+    margin-left: calc(var(--m-sb-w) + var(--m-gap) * 2);
+    padding: 30px 32px 48px 18px;
+    transition: margin-left .22s var(--ease);
+  }
+  /* No easing while the user is dragging — follow the pointer exactly */
+  :root.ui-modern.sb-resizing .fab-sidebar,
+  :root.ui-modern.sb-resizing .fab-content { transition: none; }
+  :root.ui-modern.sb-resizing { cursor: col-resize; user-select: none; }
+
+  /* Collapsed = icon rail with tooltips (like the reference) */
+  :root.ui-modern.sb-collapsed .fab-sidebar { overflow: visible; }
+  :root.ui-modern.sb-collapsed .fab-nav-link {
+    justify-content: center;
+    padding: 12px 0;
+    margin: 6px 14px;
+    position: relative;
+  }
+  :root.ui-modern.sb-collapsed .fab-nav-link:hover { transform: none; }
+  :root.ui-modern.sb-collapsed .fab-nav-label {
+    position: absolute;
+    left: calc(100% + 16px);
+    top: 50%;
+    transform: translate(-6px, -50%);
+    background: #16162A;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .2);
+    transition: opacity .15s, transform .15s var(--ease);
+    z-index: 5;
+  }
+  :root.ui-modern.sb-collapsed .fab-nav-link:hover .fab-nav-label,
+  :root.ui-modern.sb-collapsed .fab-nav-link:focus-visible .fab-nav-label {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+  :root.ui-modern.sb-collapsed .fab-nav-section {
+    font-size: 0;
+    height: 1px;
+    padding: 0;
+    margin: 12px 22px;
+    background: rgba(255, 255, 255, .22);
+  }
+
+  /* Drag handle on the panel's right edge */
+  :root.ui-modern .fab-sb-resizer {
+    display: block;
+    position: fixed;
+    top: calc(var(--topbar-height) + var(--m-gap) + 40px);
+    bottom: calc(var(--m-gap) + 40px);
+    left: calc(var(--m-gap) + var(--m-sb-w) - 5px);
+    width: 10px;
+    cursor: col-resize;
+    z-index: 950;
+    transition: left .22s var(--ease);
+  }
+  :root.ui-modern.sb-resizing .fab-sb-resizer { transition: none; }
+  :root.ui-modern .fab-sb-resizer::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 50%;
+    width: 4px;
+    height: 44px;
+    margin-top: -22px;
+    border-radius: 4px;
+    background: rgba(91, 76, 240, .25);
+    transition: background .15s, height .15s, margin-top .15s;
+  }
+  :root.ui-modern .fab-sb-resizer:hover::after,
+  :root.ui-modern .fab-sb-resizer:focus-visible::after,
+  :root.ui-modern.sb-resizing .fab-sb-resizer::after {
+    background: var(--accent);
+    height: 72px;
+    margin-top: -36px;
+  }
+  :root.ui-modern .fab-sb-resizer:focus-visible { outline: none; }
+}
+/* Handle is hidden in Classic and on mobile */
+.fab-sb-resizer { display: none; }
+
+/* Side panel links (both widths) */
+:where(.ui-modern) .fab-nav-section {
+  color: rgba(255, 255, 255, .55);
+  padding: 4px 26px 2px;
+  margin-top: 14px;
+  white-space: nowrap;
+}
+:where(.ui-modern) .fab-nav-link {
+  color: rgba(255, 255, 255, .84);
+  border-left: 0;
+  margin: 3px 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  gap: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background .18s, color .18s, transform .18s var(--ease), box-shadow .18s;
+}
+:where(.ui-modern) .fab-nav-link:hover {
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  transform: translateX(2px);
+}
+:where(.ui-modern) .fab-nav-link.active {
+  background: #fff;
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 10px 22px -8px rgba(16, 8, 80, .45);
+}
+:where(.ui-modern) .fab-nav-link svg { width: 20px; height: 20px; opacity: .95; }
+:where(.ui-modern) .fab-nav-link:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ---------- Page header ---------- */
+:where(.ui-modern) .fab-page-header { margin-bottom: 24px; }
+:where(.ui-modern) .fab-page-title {
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -.02em;
+}
+
+/* ---------- Cards: glass surface + hover lift ---------- */
+:where(.ui-modern) .fab-card,
+:where(.ui-modern) .fab-table-wrap {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+:where(.ui-modern) .fab-card { transition: box-shadow .25s var(--ease); }
+:where(.ui-modern) .fab-card:hover { box-shadow: 0 10px 30px -12px rgba(22, 22, 42, .14); }
+
+:where(.ui-modern) .fab-stat-card {
+  --stat-c: var(--accent);
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  background:
+    linear-gradient(var(--stat-c), var(--stat-c)) top / 100% 4px no-repeat,
+    linear-gradient(160deg, #fff 55%, color-mix(in srgb, var(--stat-c) 6%, #fff));
+  padding: 22px 24px;
+  transition: transform .28s var(--ease), box-shadow .28s var(--ease);
+}
+:where(.ui-modern) .fab-stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+}
+:where(.ui-modern) .fab-stat-card.stat-active   { --stat-c: #16A34A; }
+:where(.ui-modern) .fab-stat-card.stat-expiring { --stat-c: #EA8A0C; }
+:where(.ui-modern) .fab-stat-card.stat-expired  { --stat-c: #E5484D; }
+:where(.ui-modern) .fab-stat-card.stat-amc      { --stat-c: #8B5CF6; }
+:where(.ui-modern) .fab-stat-card.stat-lost     { --stat-c: #E5484D; }
+:where(.ui-modern) .fab-stat-card.stat-ni       { --stat-c: #7A7574; }
+:where(.ui-modern) .fab-stat-card.is-selected   { box-shadow: 0 0 0 2px var(--accent), var(--shadow-md); }
+:where(.ui-modern) .fab-stat-value {
+  font-size: 30px;
+  font-weight: 750;
+  letter-spacing: -.02em;
+}
+
+/* ---------- Tables ---------- */
+:where(.ui-modern) .fab-table thead th {
+  background: #FAFAFE;
+  color: #8A8AA3;
+  font-size: 11.5px;
+  padding: 12px 16px;
+}
+:where(.ui-modern) .fab-table tbody td { padding: 12px 16px; }
+:where(.ui-modern) .fab-table tbody tr { border-bottom-color: #F2F2F7; }
+:where(.ui-modern) .fab-table tbody tr:nth-child(even) { background: #FCFCFE; }
+
+/* ---------- Buttons ---------- */
+:where(.ui-modern) .btn { border-radius: var(--radius-sm); font-weight: 500; }
+:where(.ui-modern) .btn-accent {
+  background: var(--accent-grad);
+  border: 0;
+  border-radius: 12px;
+  padding: 8px 18px;
+  font-weight: 600;
+  box-shadow: 0 10px 20px -10px rgba(74, 53, 214, .8);
+  transition: transform .18s var(--ease), box-shadow .18s, filter .18s;
+}
+:where(.ui-modern) .btn-accent:hover,
+:where(.ui-modern) .btn-accent:focus {
+  background: var(--accent-grad);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px -10px rgba(74, 53, 214, .85);
+}
+:where(.ui-modern) .btn-accent:active { transform: translateY(0); }
+:where(.ui-modern) .btn-sm { border-radius: 8px; }
+
+/* ---------- Forms ---------- */
+:where(.ui-modern) .form-control,
+:where(.ui-modern) .form-select { border-radius: var(--radius-sm); }
+:where(.ui-modern) .form-control:focus,
+:where(.ui-modern) .form-select:focus { box-shadow: 0 0 0 3px rgba(91, 76, 240, .18); }
+
+/* ---------- Alerts, badges, misc ---------- */
+:where(.ui-modern) .alert { border-radius: 14px; border: 0; box-shadow: var(--shadow); }
+:where(.ui-modern) .badge-admin { background: var(--accent-light); color: var(--accent); border-color: #D4CEFF; }
+:where(.ui-modern) .fab-ss-panel { border-radius: 14px; border-color: var(--border); }
+
+/* ---------- Entrance motion (staggered rise) ---------- */
+@keyframes fab-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+:where(.ui-modern) .fab-content > * { animation: fab-rise .45s var(--ease) both; }
+:where(.ui-modern) .fab-content > *:nth-child(2) { animation-delay: .05s; }
+:where(.ui-modern) .fab-content > *:nth-child(3) { animation-delay: .10s; }
+:where(.ui-modern) .fab-content > *:nth-child(4) { animation-delay: .15s; }
+:where(.ui-modern) .fab-content > *:nth-child(n+5) { animation-delay: .20s; }
+:where(.ui-modern) .row > [class*="col"] > .fab-stat-card { animation: fab-rise .5s var(--ease) both; }
+:where(.ui-modern) .row > [class*="col"]:nth-child(2) > .fab-stat-card { animation-delay: .06s; }
+:where(.ui-modern) .row > [class*="col"]:nth-child(3) > .fab-stat-card { animation-delay: .12s; }
+:where(.ui-modern) .row > [class*="col"]:nth-child(4) > .fab-stat-card { animation-delay: .18s; }
+:where(.ui-modern) .row > [class*="col"]:nth-child(n+5) > .fab-stat-card { animation-delay: .24s; }
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.ui-modern) *, :where(.ui-modern) *::before, :where(.ui-modern) *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 767px) {
+  :where(.ui-modern) .fab-sidebar {
+    background: var(--accent-grad);
+    border: 0;
+    top: calc(var(--topbar-height) + 8px);
+    left: 8px;
+    bottom: 8px;
+    width: 250px;
+    border-radius: 22px;
+    transform: translateX(calc(-100% - 16px));
+  }
+  :where(.ui-modern) .fab-sidebar.open { transform: translateX(0); }
+  :where(.ui-modern) .fab-topbar { padding: 0 12px; gap: 8px; }
+  :where(.ui-modern) .fab-topbar-user { padding: 3px 4px 3px 8px; }
+  .fab-ui-switch button span { display: none; }
+  .fab-ui-switch button { padding: 6px 9px; }
+}

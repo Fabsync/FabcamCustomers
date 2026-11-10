@@ -9,6 +9,20 @@
   <link rel="stylesheet" href="<?= BASE_URL ?>/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/bootstrap-icons/bootstrap-icons.min.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>/css/app.css?v=<?= (int)@filemtime(__DIR__ . '/../../../public/css/app.css') ?>">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/css/ui-modern.css?v=<?= (int)@filemtime(__DIR__ . '/../../../public/css/ui-modern.css') ?>">
+  <script>
+    // Apply the saved interface style before first paint (no flash). Default: modern.
+    (function () {
+      var d = document.documentElement, ui = 'modern', w = null;
+      try { ui = localStorage.getItem('fab-ui') || 'modern'; w = localStorage.getItem('fab-sb-w'); } catch (e) {}
+      if (ui !== 'modern') return;
+      d.classList.add('ui-modern');
+      if (w && +w >= 72 && +w <= 320) {
+        d.style.setProperty('--m-sb-w', w + 'px');
+        if (+w < 150) d.classList.add('sb-collapsed');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -25,5 +39,6 @@
 <div class="fab-sidebar-overlay" id="sidebarOverlay"></div>
 <script src="<?= BASE_URL ?>/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="<?= BASE_URL ?>/js/app.js"></script>
+<script src="<?= BASE_URL ?>/js/ui-modern.js?v=<?= (int)@filemtime(__DIR__ . '/../../../public/js/ui-modern.js') ?>"></script>
 </body>
 </html>
