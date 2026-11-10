@@ -17,6 +17,8 @@
       try { ui = localStorage.getItem('fab-ui') || 'modern'; w = localStorage.getItem('fab-sb-w'); } catch (e) {}
       if (ui !== 'modern') return;
       d.classList.add('ui-modern');
+      // Logo intro animation: once per browser session, not on every page
+      try { if (!sessionStorage.getItem('fab-logo-intro')) { d.classList.add('logo-intro'); sessionStorage.setItem('fab-logo-intro', '1'); } } catch (e) {}
       if (w && +w >= 72 && +w <= 320) {
         d.style.setProperty('--m-sb-w', w + 'px');
         if (+w < 150) d.classList.add('sb-collapsed');

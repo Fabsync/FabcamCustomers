@@ -5,7 +5,11 @@
     </svg>
   </button>
   <a href="<?= BASE_URL ?>/dashboard" class="fab-topbar-brand">
-    <img src="<?= BASE_URL ?>/images/fabcam-logo.png" alt="Fabcam Technologies" class="fab-topbar-logo">
+    <span class="fab-logo">
+      <span class="fab-logo-glow" aria-hidden="true"></span>
+      <img src="<?= BASE_URL ?>/images/fabcam-logo.png" alt="Fabcam Technologies" class="fab-topbar-logo">
+      <span class="fab-logo-sheen" aria-hidden="true"></span>
+    </span>
   </a>
   <div class="fab-topbar-spacer"></div>
   <div class="fab-ui-switch" role="group" aria-label="Interface style">

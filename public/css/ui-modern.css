@@ -85,6 +85,64 @@
 }
 :where(.ui-modern) .fab-topbar-user .btn { border-radius: 999px; }
 
+/* ---------- Animated logo (adapted from fabcam_animated_logo.html) ---------- */
+.fab-logo { position: relative; display: inline-flex; align-items: center; }
+.fab-logo-glow, .fab-logo-sheen { display: none; }
+
+:root.ui-modern .fab-logo { animation: fab-logo-float 6s ease-in-out 1.4s infinite; }
+:root.ui-modern .fab-topbar-logo { position: relative; z-index: 2; }
+
+/* soft orange glow pulsing behind the logo */
+:root.ui-modern .fab-logo-glow {
+  display: block;
+  position: absolute;
+  inset: -40% -12%;
+  z-index: 1;
+  background: radial-gradient(ellipse at 40% 45%, rgba(244, 123, 32, .30), transparent 62%);
+  filter: blur(12px);
+  pointer-events: none;
+  animation: fab-logo-pulse 4s ease-in-out infinite;
+}
+
+/* light sweep that only plays across the painted letters (logo used as mask) */
+:root.ui-modern .fab-logo-sheen {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .75) 47%,
+              rgba(255, 255, 255, .95) 50%, rgba(255, 255, 255, .75) 53%, transparent 70%);
+  background-size: 300% 100%;
+  background-position: 150% 0;
+  -webkit-mask: url("../images/fabcam-logo.png") center / 100% 100% no-repeat;
+          mask: url("../images/fabcam-logo.png") center / 100% 100% no-repeat;
+  mix-blend-mode: overlay;
+  animation: fab-logo-sheen 6s ease-in-out 1.6s infinite;
+}
+
+/* first page of the session: wipe-reveal + blur-to-sharp entrance */
+:root.ui-modern.logo-intro .fab-topbar-logo {
+  animation: fab-logo-reveal 1.1s cubic-bezier(.65, 0, .35, 1) both,
+             fab-logo-enter 1.1s cubic-bezier(.2, .9, .25, 1) both;
+}
+:root.ui-modern.logo-intro .fab-logo-glow {
+  animation: fab-logo-glow-in 1.4s ease .4s both, fab-logo-pulse 4s ease-in-out 1.8s infinite;
+}
+
+@keyframes fab-logo-reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes fab-logo-enter  { from { opacity: 0; transform: scale(.85) translateY(6px); filter: blur(6px); }
+                             to   { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes fab-logo-float  { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes fab-logo-pulse  { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: .95; transform: scale(1.06); } }
+@keyframes fab-logo-glow-in { from { opacity: 0; } to { opacity: .55; } }
+@keyframes fab-logo-sheen  {
+  0%   { background-position: 150% 0; opacity: 0; }
+  5%   { opacity: 1; }
+  30%  { background-position: -50% 0; opacity: 1; }
+  31%, 100% { background-position: -50% 0; opacity: 0; }
+}
+
 /* ---------- Floating, resizable side panel (desktop) ---------- */
 @media (min-width: 768px) {
   :where(.ui-modern) .fab-sidebar {
