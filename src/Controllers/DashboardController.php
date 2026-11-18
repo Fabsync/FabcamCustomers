@@ -6,16 +6,26 @@ class DashboardController extends Controller {
         'active'   => 'Active Licenses',
         'expiring' => 'Licenses Expiring Within 30 Days',
         'expired'  => 'Expired Licenses',
+        'customers' => 'All Customers',
+        'amc'      => 'Total AMC Revenue - Customers',
     ];
 
     public function index(): void {
         $this->requireAuth();
         $view = $_GET['view'] ?? 'expiring';
-        if (!isset(self::VIEWS[$view])) $view = 'expiring';
+        $isAdmin = ($_SESSION['user']['role'] ?? '') === 'admin';
+        if (!isset(self::VIEWS[$view]) || ($view === 'amc' && !$isAdmin)) $view = 'expiring';
+        $views = self::VIEWS;
+        if (!$isAdmin) unset($views['amc']);
 
         $licenseModel = new LicenseModel();
         $stats        = $licenseModel->getStatCounts();
-        $licenses     = $licenseModel->getDashboardSegment($view, 30);
+        $isLicenseView = !in_array($view, ['customers', 'amc'], true);
+        $licenses     = $isLicenseView ? $licenseModel->getDashboardSegment($view, 30) : [];
+
+        // Customer list for the Total Customers / Total AMC Revenue cards
+        $customerRows = $view === 'amc' ? $licenseModel->getAmcRevenueByCustomer()
+                      : ($view === 'customers' ? $licenseModel->getCustomersSummary() : []);
 
         // Chart data for the selected segment
         $byProduct = [];
@@ -26,18 +36,16 @@ class DashboardController extends Controller {
         }
         arsort($byProduct);
 
-        // Customers behind the Total AMC Revenue card (admin only)
-        $amcCustomers = ($_SESSION['user']['role'] ?? '') === 'admin' ? $licenseModel->getAmcRevenueByCustomer() : [];
 
         $this->render('dashboard/index', [
             'pageTitle' => 'Dashboard',
             'stats'     => $stats,
             'licenses'  => $licenses,
             'view'      => $view,
-            'views'     => self::VIEWS,
+            'views'     => $views,
             'byProduct' => $byProduct,
             'amc'       => $amc,
-            'amcCustomers' => $amcCustomers,
+            'customerRows' => $customerRows,
         ]);
     }
 }

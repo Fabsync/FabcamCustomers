@@ -23,45 +23,31 @@ $palette       = ['#0F6CBD', '#107C10', '#CA5010', '#8764B8', '#038387', '#D1343
 $productLabels = array_keys($byProduct);
 $productCounts = array_values($byProduct);
 $productColors = array_map(fn($i) => $palette[$i % count($palette)], array_keys($productLabels));
+$isLicenseView = !in_array($view, ['customers', 'amc'], true);
 $viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expired' : 'active');
 ?>
 <div class="fab-page-header">
   <h1 class="fab-page-title">Dashboard</h1>
 </div>
 
-<!-- Stat cards -->
+<!-- Stat cards: click one to list it in the table below -->
+<?php
+$isAdmin = ($_SESSION['user']['role'] ?? '') === 'admin';
+$cardLink = function (string $key, string $cls, string $value, string $label, string $style = '') use ($view) {
+    $on = $view === $key ? ' stat-selected' : '';
+    return '<a href="' . BASE_URL . '/dashboard?view=' . $key . '" class="text-decoration-none d-block" title="Show the list below">'
+         . '<div class="fab-stat-card ' . $cls . $on . '" style="cursor:pointer;' . ($view === $key ? 'outline:2px solid #0067C0;outline-offset:-2px;' : '') . '">'
+         . '<div class="fab-stat-value"' . ($style ? ' style="' . $style . '"' : '') . '>' . $value . '</div>'
+         . '<div class="fab-stat-label">' . $label . '</div></div></a>';
+};
+?>
 <div class="row g-3 mb-4">
-  <div class="col-sm-6 col-xl">
-    <div class="fab-stat-card">
-      <div class="fab-stat-value"><?= (int)($stats['total_customers'] ?? 0) ?></div>
-      <div class="fab-stat-label">Total Customers</div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-xl">
-    <div class="fab-stat-card stat-active">
-      <div class="fab-stat-value"><?= $activeCount ?></div>
-      <div class="fab-stat-label">Active Licenses</div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-xl">
-    <div class="fab-stat-card stat-expiring">
-      <div class="fab-stat-value"><?= (int)($stats['expiring_soon'] ?? 0) ?></div>
-      <div class="fab-stat-label">Expiring in 30 Days</div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-xl">
-    <div class="fab-stat-card stat-expired">
-      <div class="fab-stat-value"><?= $expiredCount ?></div>
-      <div class="fab-stat-label">Expired Licenses</div>
-    </div>
-  </div>
-  <?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
-  <div class="col-sm-6 col-xl">
-    <div class="fab-stat-card stat-amc" id="amcCard" role="button" tabindex="0" style="cursor:pointer" title="Click to see the customers behind this amount">
-      <div class="fab-stat-value" style="font-size:1.35rem">&#8377; <?= inrFormat((float)($stats['total_amc_revenue'] ?? 0)) ?></div>
-      <div class="fab-stat-label">Total AMC Revenue <span class="text-muted-fab" style="font-size:12px">(<?= count($amcCustomers ?? []) ?> customers)</span></div>
-    </div>
-  </div>
+  <div class="col-sm-6 col-xl"><?= $cardLink('customers', '', (string)(int)($stats['total_customers'] ?? 0), 'Total Customers') ?></div>
+  <div class="col-sm-6 col-xl"><?= $cardLink('active', 'stat-active', (string)$activeCount, 'Active Licenses') ?></div>
+  <div class="col-sm-6 col-xl"><?= $cardLink('expiring', 'stat-expiring', (string)(int)($stats['expiring_soon'] ?? 0), 'Expiring in 30 Days') ?></div>
+  <div class="col-sm-6 col-xl"><?= $cardLink('expired', 'stat-expired', (string)$expiredCount, 'Expired Licenses') ?></div>
+  <?php if ($isAdmin): ?>
+  <div class="col-sm-6 col-xl"><?= $cardLink('amc', 'stat-amc', '&#8377; ' . inrFormat((float)($stats['total_amc_revenue'] ?? 0)), 'Total AMC Revenue', 'font-size:1.35rem') ?></div>
   <?php endif; ?>
 </div>
 
@@ -76,6 +62,7 @@ $viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expire
   <noscript><button type="submit" class="btn btn-sm btn-outline-secondary">Apply</button></noscript>
 </form>
 
+<?php if ($isLicenseView): ?>
 <!-- Charts row -->
 <div class="row g-3 mb-4">
 
@@ -127,6 +114,59 @@ $viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expire
 
 </div>
 
+<?php endif; ?>
+
+<?php if (!$isLicenseView): ?>
+<!-- Customer list: Total Customers / Total AMC Revenue -->
+<div class="fab-card p-0">
+  <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+    <h6 class="mb-0 fw-semibold"><?= htmlspecialchars($views[$view], ENT_QUOTES, 'UTF-8') ?> <span class="text-muted-fab fw-normal">(<?= count($customerRows) ?>)</span></h6>
+    <a href="<?= BASE_URL ?>/customers" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-right me-1"></i>View All</a>
+  </div>
+  <?php if (empty($customerRows)): ?>
+  <div class="px-4 py-4 text-muted-fab text-center">No customers in this group.</div>
+  <?php else: ?>
+  <div class="table-responsive">
+    <table class="fab-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Customer</th><th>Contact</th><th>Mobile</th>
+          <th class="text-end">Licenses</th>
+          <?php if ($view === 'amc'): ?><th>Last Renewal</th><th class="text-end">AMC Amount (&#8377;)</th><?php endif; ?>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php $i = 0; $sum = 0.0; foreach ($customerRows as $c): $i++; $sum += (float)($c['amc_total'] ?? 0); ?>
+        <tr>
+          <td><?= $i ?></td>
+          <td>
+            <a href="<?= BASE_URL ?>/customers/view/<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['company_name'], ENT_QUOTES, 'UTF-8') ?></a>
+            <div class="text-muted-fab" style="font-size:12px"><?= htmlspecialchars((string)$c['cust_code'], ENT_QUOTES, 'UTF-8') ?></div>
+          </td>
+          <td><?= htmlspecialchars((string)$c['contact_person'], ENT_QUOTES, 'UTF-8') ?></td>
+          <td><?= htmlspecialchars((string)$c['mobile'], ENT_QUOTES, 'UTF-8') ?></td>
+          <td class="text-end"><?= (int)$c['license_count'] ?></td>
+          <?php if ($view === 'amc'): ?>
+          <td><?= !empty($c['last_renewal']) ? date('d/m/Y', strtotime($c['last_renewal'])) : '—' ?></td>
+          <td class="text-end fw-semibold"><?= inrFormat((float)$c['amc_total']) ?></td>
+          <?php endif; ?>
+          <td class="action-links">
+            <a href="<?= BASE_URL ?>/customers/view/<?= (int)$c['id'] ?>" class="btn btn-sm btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+      <?php if ($view === 'amc'): ?>
+      <tfoot>
+        <tr><td colspan="6" class="text-end fw-semibold">Total</td><td class="text-end fw-semibold"><?= inrFormat($sum) ?></td><td></td></tr>
+      </tfoot>
+      <?php endif; ?>
+    </table>
+  </div>
+  <?php endif; ?>
+</div>
+<?php else: ?>
 <!-- Expiring soon table -->
 <div class="fab-card p-0">
   <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
@@ -180,59 +220,8 @@ $viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expire
   <?php endif; ?>
 </div>
 
-<?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
-<!-- AMC revenue by customer (opens when the Total AMC Revenue card is clicked) -->
-<div class="fab-card p-0 mt-4" id="amcPanel" style="display:none">
-  <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
-    <h6 class="mb-0 fw-semibold">Total AMC Revenue by Customer <span class="text-muted-fab fw-normal">(<?= count($amcCustomers) ?>)</span></h6>
-    <button type="button" class="btn btn-sm btn-outline-secondary" id="amcPanelClose"><i class="bi bi-x-lg me-1"></i>Close</button>
-  </div>
-  <?php if (empty($amcCustomers)): ?>
-  <div class="px-4 py-4 text-muted-fab text-center">No AMC revenue recorded yet.</div>
-  <?php else: ?>
-  <div class="table-responsive">
-    <table class="fab-table">
-      <thead>
-        <tr><th>#</th><th>Customer</th><th>Contact</th><th>Mobile</th><th class="text-end">Licenses</th><th>Last Renewal</th><th class="text-end">AMC Amount (&#8377;)</th></tr>
-      </thead>
-      <tbody>
-        <?php $i = 0; $sum = 0.0; foreach ($amcCustomers as $c): $i++; $sum += (float)$c['amc_total']; ?>
-        <tr>
-          <td><?= $i ?></td>
-          <td>
-            <a href="<?= BASE_URL ?>/customers/view/<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['company_name'], ENT_QUOTES, 'UTF-8') ?></a>
-            <div class="text-muted-fab" style="font-size:12px"><?= htmlspecialchars($c['cust_code'], ENT_QUOTES, 'UTF-8') ?></div>
-          </td>
-          <td><?= htmlspecialchars((string)$c['contact_person'], ENT_QUOTES, 'UTF-8') ?></td>
-          <td><?= htmlspecialchars((string)$c['mobile'], ENT_QUOTES, 'UTF-8') ?></td>
-          <td class="text-end"><?= (int)$c['license_count'] ?></td>
-          <td><?= $c['last_renewal'] ? date('d/m/Y', strtotime($c['last_renewal'])) : '—' ?></td>
-          <td class="text-end fw-semibold"><?= inrFormat((float)$c['amc_total']) ?></td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-      <tfoot>
-        <tr><td colspan="6" class="text-end fw-semibold">Total</td><td class="text-end fw-semibold"><?= inrFormat($sum) ?></td></tr>
-      </tfoot>
-    </table>
-  </div>
-  <?php endif; ?>
-</div>
-<script>
-(function () {
-  var card = document.getElementById('amcCard'), panel = document.getElementById('amcPanel');
-  if (!card || !panel) return;
-  function toggle() {
-    var open = panel.style.display === 'none';
-    panel.style.display = open ? '' : 'none';
-    if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  card.addEventListener('click', toggle);
-  card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
-  document.getElementById('amcPanelClose').addEventListener('click', function () { panel.style.display = 'none'; });
-})();
-</script>
 <?php endif; ?>
+
 <!-- Chart.js (dashboard only) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
@@ -274,7 +263,8 @@ $viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expire
   });
 
   // --- Bar: AMC Status ---
-  new Chart(document.getElementById('amcStatusChart'), {
+  const amcEl = document.getElementById('amcStatusChart');
+  if (amcEl) new Chart(amcEl, {
     type: 'bar',
     data: {
       labels: ['AMC Active', 'AMC Expired', 'Not Applicable'],
