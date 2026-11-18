@@ -183,6 +183,20 @@ class LicenseModel extends BaseModel {
         return $row;
     }
 
+    /** Customers that make up the Total AMC Revenue card: AMC cost per customer, highest first. */
+    public function getAmcRevenueByCustomer(): array {
+        return $this->pdo->query(
+            "SELECT c.id, c.customer_id AS cust_code, c.company_name, c.contact_person, c.mobile,
+                    COUNT(*)           AS license_count,
+                    SUM(l.amc_cost)    AS amc_total,
+                    MAX(l.renewal_date) AS last_renewal
+             FROM licenses l
+             JOIN customers c ON c.id = l.customer_id
+             WHERE l.amc_cost IS NOT NULL AND l.amc_cost > 0
+             GROUP BY c.id, c.customer_id, c.company_name, c.contact_person, c.mobile
+             ORDER BY amc_total DESC, c.company_name ASC"
+        )->fetchAll();
+    }
     public function insert(array $d, int $userId): int {
         $stmt = $this->pdo->prepare(
             'INSERT INTO licenses

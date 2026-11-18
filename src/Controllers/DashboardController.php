@@ -26,6 +26,9 @@ class DashboardController extends Controller {
         }
         arsort($byProduct);
 
+        // Customers behind the Total AMC Revenue card (admin only)
+        $amcCustomers = ($_SESSION['user']['role'] ?? '') === 'admin' ? $licenseModel->getAmcRevenueByCustomer() : [];
+
         $this->render('dashboard/index', [
             'pageTitle' => 'Dashboard',
             'stats'     => $stats,
@@ -34,6 +37,7 @@ class DashboardController extends Controller {
             'views'     => self::VIEWS,
             'byProduct' => $byProduct,
             'amc'       => $amc,
+            'amcCustomers' => $amcCustomers,
         ]);
     }
 }

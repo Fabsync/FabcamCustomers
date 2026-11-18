@@ -57,9 +57,9 @@ $viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expire
   </div>
   <?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
   <div class="col-sm-6 col-xl">
-    <div class="fab-stat-card stat-amc">
+    <div class="fab-stat-card stat-amc" id="amcCard" role="button" tabindex="0" style="cursor:pointer" title="Click to see the customers behind this amount">
       <div class="fab-stat-value" style="font-size:1.35rem">&#8377; <?= inrFormat((float)($stats['total_amc_revenue'] ?? 0)) ?></div>
-      <div class="fab-stat-label">Total AMC Revenue</div>
+      <div class="fab-stat-label">Total AMC Revenue <span class="text-muted-fab" style="font-size:12px">(<?= count($amcCustomers ?? []) ?> customers)</span></div>
     </div>
   </div>
   <?php endif; ?>
@@ -180,6 +180,59 @@ $viewAllUrl    = BASE_URL . '/licenses?status=' . ($view === 'expired' ? 'expire
   <?php endif; ?>
 </div>
 
+<?php if (($_SESSION['user']['role'] ?? '') === 'admin'): ?>
+<!-- AMC revenue by customer (opens when the Total AMC Revenue card is clicked) -->
+<div class="fab-card p-0 mt-4" id="amcPanel" style="display:none">
+  <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom">
+    <h6 class="mb-0 fw-semibold">Total AMC Revenue by Customer <span class="text-muted-fab fw-normal">(<?= count($amcCustomers) ?>)</span></h6>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="amcPanelClose"><i class="bi bi-x-lg me-1"></i>Close</button>
+  </div>
+  <?php if (empty($amcCustomers)): ?>
+  <div class="px-4 py-4 text-muted-fab text-center">No AMC revenue recorded yet.</div>
+  <?php else: ?>
+  <div class="table-responsive">
+    <table class="fab-table">
+      <thead>
+        <tr><th>#</th><th>Customer</th><th>Contact</th><th>Mobile</th><th class="text-end">Licenses</th><th>Last Renewal</th><th class="text-end">AMC Amount (&#8377;)</th></tr>
+      </thead>
+      <tbody>
+        <?php $i = 0; $sum = 0.0; foreach ($amcCustomers as $c): $i++; $sum += (float)$c['amc_total']; ?>
+        <tr>
+          <td><?= $i ?></td>
+          <td>
+            <a href="<?= BASE_URL ?>/customers/view/<?= (int)$c['id'] ?>"><?= htmlspecialchars($c['company_name'], ENT_QUOTES, 'UTF-8') ?></a>
+            <div class="text-muted-fab" style="font-size:12px"><?= htmlspecialchars($c['cust_code'], ENT_QUOTES, 'UTF-8') ?></div>
+          </td>
+          <td><?= htmlspecialchars((string)$c['contact_person'], ENT_QUOTES, 'UTF-8') ?></td>
+          <td><?= htmlspecialchars((string)$c['mobile'], ENT_QUOTES, 'UTF-8') ?></td>
+          <td class="text-end"><?= (int)$c['license_count'] ?></td>
+          <td><?= $c['last_renewal'] ? date('d/m/Y', strtotime($c['last_renewal'])) : '—' ?></td>
+          <td class="text-end fw-semibold"><?= inrFormat((float)$c['amc_total']) ?></td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="6" class="text-end fw-semibold">Total</td><td class="text-end fw-semibold"><?= inrFormat($sum) ?></td></tr>
+      </tfoot>
+    </table>
+  </div>
+  <?php endif; ?>
+</div>
+<script>
+(function () {
+  var card = document.getElementById('amcCard'), panel = document.getElementById('amcPanel');
+  if (!card || !panel) return;
+  function toggle() {
+    var open = panel.style.display === 'none';
+    panel.style.display = open ? '' : 'none';
+    if (open) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  card.addEventListener('click', toggle);
+  card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  document.getElementById('amcPanelClose').addEventListener('click', function () { panel.style.display = 'none'; });
+})();
+</script>
+<?php endif; ?>
 <!-- Chart.js (dashboard only) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
