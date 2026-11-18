@@ -62,4 +62,21 @@ class ExportModel extends BaseModel {
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
+
+    /** All leads (newest first) with product, linked customer and assignee names. */
+    public function getLeadExportData(): array {
+        return $this->pdo->query(
+            "SELECT l.lead_number, l.company_name, l.contact_person, l.mobile, l.email,
+                    p.product_name, l.requirement, l.source, l.status, l.interest_level,
+                    l.expected_value, l.next_follow_up, l.close_reason, l.closed_at,
+                    c.customer_id AS cust_code, ua.name AS assigned_to_name,
+                    uc.name AS created_by_name, l.created_at, l.updated_at
+             FROM leads l
+             LEFT JOIN products  p  ON p.id  = l.product_id
+             LEFT JOIN customers c  ON c.id  = l.customer_id
+             LEFT JOIN users     ua ON ua.id = l.assigned_to
+             LEFT JOIN users     uc ON uc.id = l.created_by
+             ORDER BY l.created_at DESC, l.id DESC"
+        )->fetchAll();
+    }
 }
